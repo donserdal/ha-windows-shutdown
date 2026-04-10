@@ -1,0 +1,86 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Windows Shutdown instellen",
+        "menu_options": {
+          "discover": "Automatisch zoeken (aanbevolen)",
+          "manual": "Handmatig invoeren"
+        }
+      },
+      "discover": {
+        "title": "Gevonden clients ({count})",
+        "data": {
+          "device": "Selecteer een apparaat"
+        }
+      },
+      "manual": {
+        "title": "Handmatig verbinden",
+        "data": {
+          "host": "Hostnaam of IP-adres",
+          "port": "Poort"
+        },
+        "data_description": {
+          "host": "De hostnaam of het IP-adres van de Windows-computer waarop de client draait.",
+          "port": "De poort waarop de client luistert (standaard: 8765)."
+        }
+      },
+      "credentials": {
+        "title": "API-sleutel invoeren",
+        "description": "Voer de API-sleutel in die de client heeft gegenereerd.\n\nClient: **{host}:{port}**\n\nU vindt de sleutel via:\n- Het systeemvak-pictogram → \"Verbindingsinfo tonen\"\n- Of via de opdrachtregel: `ha-shutdown-client.exe --show-password`",
+        "data": {
+          "api_key": "API-sleutel"
+        }
+      },
+      "zeroconf_confirm": {
+        "title": "Windows-client gevonden",
+        "description": "Home Assistant heeft de volgende client gevonden:\n\n**{name}** ({host}:{port})\n\nDruk op Bevestigen om de API-sleutel in te voeren."
+      },
+      "reauth_confirm": {
+        "title": "API-sleutel vernieuwen",
+        "description": "De API-sleutel voor **{host}** is ongeldig geworden. Voer een nieuwe sleutel in.",
+        "data": {
+          "api_key": "Nieuwe API-sleutel"
+        }
+      },
+      "reconfigure": {
+        "title": "Instellingen aanpassen",
+        "data": {
+          "delay": "Vertraging (seconden)",
+          "shutdown_type": "Type actie"
+        },
+        "data_description": {
+          "delay": "Aantal seconden dat de computer wacht vóór het afsluiten.",
+          "shutdown_type": "Kies de gewenste actie: afsluiten, herstarten of afmelden."
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Kan geen verbinding maken. Controleer hostnaam/IP en poort.",
+      "invalid_auth": "Ongeldige API-sleutel. Controleer de sleutel op de Windows-computer.",
+      "no_devices_found": "Geen clients gevonden. Kies voor handmatige invoer.",
+      "unknown": "Onverwachte fout opgetreden."
+    },
+    "abort": {
+      "already_configured": "Dit apparaat is al geconfigureerd.",
+      "already_in_progress": "De configuratie is al bezig.",
+      "reauth_successful": "Authenticatie vernieuwd."
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "online": {
+        "name": "Online",
+        "state": {
+          "on": "Aan",
+          "off": "Uit"
+        }
+      }
+    },
+    "button": {
+      "shutdown": {
+        "name": "Uitzetten"
+      }
+    }
+  }
+}

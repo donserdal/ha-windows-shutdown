@@ -1,0 +1,76 @@
+rules:
+  # --- Bronze ---
+  config-flow: done
+  test-before-configure: done
+  unique-config-entry: done
+  config-flow-test-coverage:
+    status: exempt
+    comment: >
+      Custom integration; no automated test suite present.
+      Manually tested via the UI.
+  runtime-data: done
+  test-before-setup: done
+  action-setup: done
+  appropriate-polling: done
+  entity-unique-id: done
+  has-entity-name: done
+  entity-translations: done
+
+  # --- Silver ---
+  config-entry-unloading: done
+  log-when-unavailable: done
+  entity-unavailable: done
+  action-exceptions: done
+  reauthentication-flow: done
+  docs-high-level-description:
+    status: exempt
+    comment: Custom integration without a separate documentation site.
+  docs-installation-instructions:
+    status: exempt
+    comment: Custom integration without a separate documentation site.
+  docs-removal-instructions:
+    status: exempt
+    comment: Custom integration without a separate documentation site.
+  docs-configuration-parameters:
+    status: exempt
+    comment: Custom integration without a separate documentation site.
+  integration-owner: done
+  parallel-updates: done
+
+  # --- Gold ---
+  devices: done
+  diagnostics: done
+  reconfiguration-flow: done
+  discovery: done
+  discovery-update-info:
+    status: exempt
+    comment: >
+      The zeroconf flow is used only for initial discovery.
+      IP address changes are not automatically updated because the
+      user statically configures the client.
+  entity-category:
+    status: exempt
+    comment: >
+      The shutdown button is a primary control action, not a setting.
+      Therefore, EntityCategory is not applicable.
+  docs-data-update:
+    status: exempt
+    comment: Custom integration without a separate documentation site.
+  docs-examples:
+    status: exempt
+    comment: Custom integration without a separate documentation site.
+  docs-supported-devices:
+    status: exempt
+    comment: >
+      The integration works with any device running the ha-windows-shutdown
+      agent. There are no specific devices to mention.
+  docs-supported-functions:
+    status: exempt
+    comment: Custom integration without a separate documentation site.
+  docs-troubleshooting:
+    status: exempt
+    comment: Custom integration without a separate documentation site.
+  docs-use-cases:
+    status: exempt
+    comment: Custom integration without a separate documentation site.
+    

@@ -1,0 +1,33 @@
+shutdown:
+  name: Shutdown Windows Client
+  description: Send a shutdown/restart/logoff command to one or more clients.
+  fields:
+    delay:
+      name: Delay
+      description: Time in seconds before the shutdown starts.
+      example: 60
+      selector:
+        number:
+          min: 0
+          max: 3600
+          step: 1
+          unit_of_measurement: s
+    shutdown_type:
+      name: Type
+      description: Action type (shutdown, restart, or logoff).
+      example: shutdown
+      selector:
+        select:
+          options:
+            - shutdown
+            - restart
+            - logoff
+    entry_id:
+      name: Device
+      description: >
+        Optional: select the specific device to target.
+        Leave empty to target all configured devices.
+      required: false
+      selector:
+        config_entry:
+          integration: windows_shutdown
