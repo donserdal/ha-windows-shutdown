@@ -1,0 +1,70 @@
+name: Release
+
+on:
+  workflow_run:
+    workflows: ["Validate"]
+    types: [completed]
+    branches-ignore: ["main"]
+
+jobs:
+  release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    # Only run if validation succeeded AND it was triggered by a tag
+    if: >
+      github.event.workflow_run.conclusion == 'success' &&
+      startsWith(github.event.workflow_run.head_branch, 'v')
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          fetch-tags: true
+
+      - name: Determine version from tag
+        id: version
+        run: |
+          TAG=$(git tag --points-at HEAD | grep '^v' | head -1)
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "version=${TAG#v}" >> $GITHUB_OUTPUT
+
+      - name: Update manifest.json version
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          python3 -c "
+          import json, sys
+          with open('custom_components/windows_shutdown/manifest.json') as f:
+              m = json.load(f)
+          m['version'] = sys.argv[1]
+          with open('custom_components/windows_shutdown/manifest.json', 'w') as f:
+              json.dump(m, f, indent=2)
+              f.write('\n')
+          " "$VERSION"
+          echo "manifest.json updated to version $VERSION"
+
+      - name: Create release zip
+        run: |
+          zip -r windows_shutdown.zip custom_components/windows_shutdown/
+          echo "Release zip created: $(du -sh windows_shutdown.zip)"
+
+      - name: Extract changelog for this version
+        id: changelog
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          NOTES=$(awk "/^## \[$VERSION\]/{found=1; next} found && /^## \[/{exit} found{print}" CHANGELOG.md)
+          {
+            echo "notes<<CHANGELOG_EOF"
+            echo "$NOTES"
+            echo "CHANGELOG_EOF"
+          } >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: "Windows Shutdown ${{ steps.version.outputs.tag }}"
+          body: "${{ steps.changelog.outputs.notes }}"
+          files: windows_shutdown.zip
+          draft: false
+          prerelease: false

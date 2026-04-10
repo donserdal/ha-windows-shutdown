@@ -1,0 +1,21 @@
+{
+  "domain": "windows_shutdown",
+  "name": "Windows Shutdown",
+  "version": "1.2.0",
+  "config_flow": true,
+  "dependencies": [
+    "zeroconf"
+  ],
+  "requirements": [],
+  "zeroconf": [
+    "_ha-shutdown._tcp.local."
+  ],
+  "iot_class": "local_polling",
+  "integration_type": "device",
+  "codeowners": [
+    "@donserdal"
+  ],
+  "documentation": "https://github.com/donserdal/ha-windows-shutdown",
+  "issue_tracker": "https://github.com/donserdal/ha-windows-shutdown/issues",
+  "quality_scale": "gold"
+}
