@@ -14,7 +14,7 @@ shutdown:
           unit_of_measurement: s
     shutdown_type:
       name: Type
-      description: Action type (shutdown, restart, or logoff).
+      description: "Action type (shutdown, restart, or logoff)."
       example: shutdown
       selector:
         select:
@@ -24,9 +24,7 @@ shutdown:
             - logoff
     entry_id:
       name: Device
-      description: >
-        Optional: select the specific device to target.
-        Leave empty to target all configured devices.
+      description: "Optional: select the specific device to target. Leave empty to target all configured devices."
       required: false
       selector:
         config_entry:
@@ -38,7 +36,7 @@ notify:
   fields:
     title:
       name: Title
-      description: Title of the notification (default: "Home Assistant").
+      description: "Title of the notification. Defaults to Home Assistant if omitted."
       example: Home Assistant
       required: false
       selector:
@@ -52,9 +50,7 @@ notify:
         text:
     entry_id:
       name: Device
-      description: >
-        Optional: select the specific device to target.
-        Leave empty to target all configured devices.
+      description: "Optional: select the specific device to target. Leave empty to target all configured devices."
       required: false
       selector:
         config_entry:
