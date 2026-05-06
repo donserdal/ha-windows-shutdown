@@ -82,5 +82,27 @@
         "name": "Shut down"
       }
     }
+  },
+  "services": {
+    "notify": {
+      "name": "Send Notification",
+      "description": "Send a toast notification to one or more Windows clients.",
+      "fields": {
+        "title": {
+          "name": "Title",
+          "description": "Title of the notification (default: \"Home Assistant\").",
+          "example": "Home Assistant"
+        },
+        "message": {
+          "name": "Message",
+          "description": "Body text of the notification.",
+          "example": "The front door sensor was triggered."
+        },
+        "entry_id": {
+          "name": "Device",
+          "description": "Optional: select the specific device to target. Leave empty to target all configured devices."
+        }
+      }
+    }
   }
 }

@@ -11,6 +11,7 @@ from typing import Any
 
 import aiohttp
 
+from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
@@ -131,14 +132,31 @@ class WindowsShutdownCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     # ------------------------------------------------------------------
     # Shutdown acties
     # ------------------------------------------------------------------
-    async def async_shutdown(
+    async def async_send_shutdown(
         self,
         *,
         delay: int | None = None,
         shutdown_type: str | None = None,
     ) -> bool:
         """Stuur een shutdown-opdracht naar de client."""
-        elapsed = time.monotonic() - self._last_shutdown
+        now = time.monotonic()
+
+        # Weiger shutdown als de entry niet in geladen staat is.
+        # Dit onderschept aanroepen tijdens reload, reconfigure en reauth —
+        # HA's DataUpdateCoordinator registreert intern async_on_unload-callbacks
+        # die anders onze shutdown-methode zouden aanroepen.
+        if (
+            self.config_entry is None
+            or self.config_entry.state is not ConfigEntryState.LOADED
+        ):
+            _LOGGER.warning(
+                "Shutdown geweigerd voor %s: entry staat niet in LOADED-staat (state=%s)",
+                self.host,
+                self.config_entry.state if self.config_entry else "None",
+            )
+            return False
+
+        elapsed = now - self._last_shutdown
         if self._last_shutdown > 0 and elapsed < _SHUTDOWN_COOLDOWN:
             _LOGGER.warning(
                 "Shutdown geweigerd voor %s: vorige opdracht was %.1fs geleden (cooldown: %ds)",
@@ -172,5 +190,40 @@ class WindowsShutdownCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         error_text = body.decode(errors="replace")[:300]
         _LOGGER.error("Shutdown mislukt voor %s: HTTP %d - %s", self.host, status, error_text)
+        return False
+
+    # ------------------------------------------------------------------
+    # Notificatie
+    # ------------------------------------------------------------------
+    async def async_notify(
+        self,
+        *,
+        title: str,
+        message: str,
+    ) -> bool:
+        """Stuur een notificatie naar de Windows-client (POST /notify)."""
+        payload: dict[str, Any] = {
+            "title": title,
+            "message": message,
+        }
+
+        _LOGGER.debug("Stuur notificatie naar %s: %s", self.host, payload)
+
+        result = await self._async_request("post", "/notify", auth=True, json=payload)
+        if result is None:
+            _LOGGER.error(
+                "Notificatie mislukt voor %s: verbindingsfout", self.host
+            )
+            return False
+
+        status, body = result
+        if status == 200:
+            _LOGGER.info("Notificatie succesvol verstuurd naar %s", self.host)
+            return True
+
+        error_text = body.decode(errors="replace")[:300]
+        _LOGGER.error(
+            "Notificatie mislukt voor %s: HTTP %d - %s", self.host, status, error_text
+        )
         return False
 

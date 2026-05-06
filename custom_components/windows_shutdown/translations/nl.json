@@ -82,5 +82,27 @@
         "name": "Uitzetten"
       }
     }
+  },
+  "services": {
+    "notify": {
+      "name": "Notificatie versturen",
+      "description": "Stuur een toast-notificatie naar één of meer Windows-clients.",
+      "fields": {
+        "title": {
+          "name": "Titel",
+          "description": "Titel van de notificatie (standaard: \"Home Assistant\").",
+          "example": "Home Assistant"
+        },
+        "message": {
+          "name": "Bericht",
+          "description": "Tekst van de notificatie.",
+          "example": "De voordeur-sensor is geactiveerd."
+        },
+        "entry_id": {
+          "name": "Apparaat",
+          "description": "Optioneel: selecteer het specifieke apparaat. Leeg laten om alle apparaten te bereiken."
+        }
+      }
+    }
   }
 }

@@ -44,12 +44,41 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
             ]
 
         for coordinator in targets:
-            await coordinator.async_shutdown(
+            await coordinator.async_send_shutdown(
                 delay=delay,
                 shutdown_type=shutdown_type,
             )
 
     hass.services.async_register(DOMAIN, "shutdown", handle_shutdown)
+
+    async def handle_notify(call: ServiceCall) -> None:
+        """Service call om een notificatie te sturen naar de Windows-client."""
+        title: str = call.data.get("title", "Home Assistant")
+        message: str = call.data["message"]
+        target_entry_id = call.data.get("entry_id")
+
+        if target_entry_id:
+            entry = hass.config_entries.async_get_entry(target_entry_id)
+            if entry is None or entry.domain != DOMAIN:
+                raise ServiceValidationError(
+                    f"Onbekend entry_id opgegeven in service-aanroep: {target_entry_id}"
+                )
+            if entry.state is not ConfigEntryState.LOADED:
+                raise ServiceValidationError(
+                    f"Apparaat '{entry.title}' is momenteel niet geladen."
+                )
+            targets = [entry.runtime_data]
+        else:
+            targets = [
+                e.runtime_data
+                for e in hass.config_entries.async_entries(DOMAIN)
+                if e.state is ConfigEntryState.LOADED
+            ]
+
+        for coordinator in targets:
+            await coordinator.async_notify(title=title, message=message)
+
+    hass.services.async_register(DOMAIN, "notify", handle_notify)
 
     return True
 

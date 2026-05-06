@@ -83,7 +83,7 @@ class WindowsShutdownButton(
             self.coordinator.host, shutdown_type, delay,
         )
 
-        success = await self.coordinator.async_shutdown(
+        success = await self.coordinator.async_send_shutdown(
             delay=delay,
             shutdown_type=shutdown_type,
         )
