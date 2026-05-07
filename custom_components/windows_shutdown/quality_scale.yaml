@@ -1,5 +1,5 @@
 rules:
-  # --- Bronze ---
+  # ── Bronze ──────────────────────────────────────────────────────────
   action-setup: done
   appropriate-polling: done
   brands: done
@@ -8,8 +8,7 @@ rules:
   config-flow-test-coverage:
     status: exempt
     comment: >
-      Custom integration; no automated test suite present.
-      Manually tested via the UI.
+      Custom integration; no automated test suite. Manually verified via UI.
   dependency-transparency: done
   docs-high-level-description:
     status: exempt
@@ -20,63 +19,41 @@ rules:
   docs-removal-instructions:
     status: exempt
     comment: Custom integration without a separate documentation site.
+  entity-translations: done
   entity-unique-id: done
   has-entity-name: done
-  entity-translations: done
   inject-websession: done
   runtime-data: done
   test-before-configure: done
   test-before-setup: done
   unique-config-entry: done
 
-  # --- Silver ---
-  config-entry-unloading: done
-  log-when-unavailable: done
-  entity-unavailable: done
+  # ── Silver ──────────────────────────────────────────────────────────
   action-exceptions: done
-  reauthentication-flow: done
-  docs-high-level-description:
-    status: exempt
-    comment: Custom integration without a separate documentation site.
-  docs-installation-instructions:
-    status: exempt
-    comment: Custom integration without a separate documentation site.
-  docs-removal-instructions:
-    status: exempt
-    comment: Custom integration without a separate documentation site.
+  config-entry-unloading: done
   docs-configuration-parameters:
     status: exempt
     comment: Custom integration without a separate documentation site.
+  entity-unavailable: done
   integration-owner: done
+  log-when-unavailable: done
   parallel-updates: done
+  reauthentication-flow: done
+  test-coverage:
+    status: exempt
+    comment: >
+      Custom integration; no automated test suite present.
+      Manually tested via the UI and manual integration testing.
 
-  # --- Gold ---
+  # ── Gold ────────────────────────────────────────────────────────────
   devices: done
   diagnostics: done
-  dynamic-devices:
-    status: exempt
-    comment: >
-      Each config entry represents exactly one device. Devices are added and
-      removed via the config entry flow, not dynamically at runtime.
-  entity-category:
-    status: exempt
-    comment: >
-      The shutdown button is a primary control action, not a setting.
-      Therefore, EntityCategory is not applicable.
-  exception-translations: done
-  reconfiguration-flow: done
   discovery: done
   discovery-update-info:
     status: exempt
     comment: >
-      The zeroconf flow is used only for initial discovery.
-      IP address changes are not automatically updated because the
-      user statically configures the client.
-  stale-devices:
-    status: exempt
-    comment: >
-      Each config entry corresponds to exactly one device. Removing the
-      config entry removes the device; there are no orphaned devices.
+      Zeroconf is used only for initial discovery. IP address changes require
+      manual reconfiguration, as the user statically configures the client.
   docs-data-update:
     status: exempt
     comment: Custom integration without a separate documentation site.
@@ -86,8 +63,7 @@ rules:
   docs-supported-devices:
     status: exempt
     comment: >
-      The integration works with any device running the ha-windows-shutdown
-      agent. There are no specific devices to mention.
+      Works with any device running the ha-windows-shutdown Go client.
   docs-supported-functions:
     status: exempt
     comment: Custom integration without a separate documentation site.
@@ -97,4 +73,18 @@ rules:
   docs-use-cases:
     status: exempt
     comment: Custom integration without a separate documentation site.
-    
+  dynamic-devices:
+    status: exempt
+    comment: >
+      Each config entry represents exactly one static device.
+  entity-category:
+    status: exempt
+    comment: >
+      The shutdown button is a primary control, not a configuration entity.
+  exception-translations: done
+  reconfiguration-flow: done
+  stale-devices:
+    status: exempt
+    comment: >
+      Each config entry corresponds to exactly one device. Removing the entry
+      removes the device — there are no orphaned devices possible.

@@ -120,8 +120,13 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Verwijder een config-entry."""
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
-    # Verwijder services zodra de laatste entry is uitgeladen
-    if unload_ok and not hass.config_entries.async_entries(DOMAIN):
+    # Verwijder services wanneer er geen geladen entries meer zijn.
+    # Op dit punt is de huidige entry al UNLOADING (niet LOADED),
+    # dus de check op LOADED sluit haar correct uit.
+    if unload_ok and not any(
+        e.state is ConfigEntryState.LOADED
+        for e in hass.config_entries.async_entries(DOMAIN)
+    ):
         hass.services.async_remove(DOMAIN, "shutdown")
         hass.services.async_remove(DOMAIN, "notify")
 

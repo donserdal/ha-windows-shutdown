@@ -138,7 +138,7 @@ class WindowsShutdownCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     },
                 )
             else:
-                _LOGGER.debug(
+                _LOGGER.warning(
                     "Onverwachte HTTP-status van %s bij statuscheck: %d",
                     self.host, status,
                 )

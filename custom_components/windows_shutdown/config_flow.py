@@ -44,13 +44,14 @@ from .const import (
 
 _LOGGER = logging.getLogger(__name__)
 
-_OPT_MANUAL = "__handmatig__"
+_OPT_MANUAL = "__manual__"
 
 
 class WindowsShutdownConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Config-flow met automatische ontdekking via mDNS of handmatige invoer."""
 
     VERSION = 1
+    MINOR_VERSION = 1
 
     def __init__(self) -> None:
         self._discovered: dict[str, dict[str, Any]] = {}
@@ -99,7 +100,7 @@ class WindowsShutdownConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             key: f"{dev['name']}  ({dev['host']}:{dev['port']})"
             for key, dev in self._discovered.items()
         }
-        choices[_OPT_MANUAL] = "Handmatig invoeren…"
+        choices[_OPT_MANUAL] = "Enter manually…"
 
         return self.async_show_form(
             step_id="discover",
@@ -140,6 +141,7 @@ class WindowsShutdownConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     return val.decode("utf-8", errors="replace") if isinstance(val, bytes) else (val or "")
 
                 hostname = _decode(props.get(b"hostname")) or name.split(".")[0]
+                hostname = hostname.removesuffix(".local")
                 key = f"{host}:{info.port}"
                 with lock:
                     results[key] = {"name": hostname, "host": host, "port": info.port}
@@ -273,7 +275,9 @@ class WindowsShutdownConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Wordt aangeroepen bij mDNS-ontdekking."""
         self._host = discovery_info.host
         self._port = discovery_info.port
-        self._name = discovery_info.hostname.rstrip(".")
+        # Strip trailing dot en .local suffix voor een schone apparaatnaam
+        raw = discovery_info.hostname.rstrip(".")
+        self._name = raw.removesuffix(".local")
 
         await self.async_set_unique_id(f"{self._host}:{self._port}")
         self._abort_if_unique_id_configured()
@@ -382,7 +386,7 @@ class WindowsShutdownConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     # Reauth Flow – Wordt gestart bij ongeldige API-sleutel (401/403)
     # ------------------------------------------------------------------
     async def async_step_reauth(
-        self, user_input: dict[str, Any]
+        self, entry_data: dict[str, Any]
     ) -> ConfigFlowResult:
         """Start de reauth-flow vanuit een bestaande config entry."""
         return await self.async_step_reauth_confirm()
