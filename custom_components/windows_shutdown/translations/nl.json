@@ -132,7 +132,7 @@
       "message": "Onbekend entry_id opgegeven in service-aanroep: {entry_id}"
     },
     "entry_not_loaded": {
-      "message": "Apparaat '{title}' is momenteel niet geladen."
+      "message": "Apparaat {title} is momenteel niet geladen."
     },
     "auth_failed": {
       "message": "API-sleutel voor {host} is ongeldig (HTTP {status}). Voer de API-sleutel opnieuw in."

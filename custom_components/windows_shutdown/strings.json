@@ -132,7 +132,7 @@
       "message": "Unknown entry_id specified in service call: {entry_id}"
     },
     "entry_not_loaded": {
-      "message": "Device '{title}' is currently not loaded."
+      "message": "Device {title} is currently not loaded."
     },
     "auth_failed": {
       "message": "API key for {host} is invalid (HTTP {status}). Please re-enter your API key."
