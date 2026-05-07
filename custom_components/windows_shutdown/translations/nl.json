@@ -52,14 +52,16 @@
         "data_description": {
           "delay": "Aantal seconden dat de computer wacht vóór het afsluiten.",
           "shutdown_type": "Kies de gewenste actie: afsluiten, herstarten of afmelden."
-        }
+        },
+        "description": "Instellingen aanpassen voor **{name}**."
       }
     },
     "error": {
       "cannot_connect": "Kan geen verbinding maken. Controleer hostnaam/IP en poort.",
       "invalid_auth": "Ongeldige API-sleutel. Controleer de sleutel op de Windows-computer.",
       "no_devices_found": "Geen clients gevonden. Kies voor handmatige invoer.",
-      "unknown": "Onverwachte fout opgetreden."
+      "unknown": "Onverwachte fout opgetreden.",
+      "invalid_port": "Ongeldig poortnummer. Voer een waarde in tussen 1 en 65535."
     },
     "abort": {
       "already_configured": "Dit apparaat is al geconfigureerd.",
@@ -72,8 +74,8 @@
       "online": {
         "name": "Online",
         "state": {
-          "on": "Aan",
-          "off": "Uit"
+          "true": "Aan",
+          "false": "Uit"
         }
       }
     },
@@ -103,6 +105,40 @@
           "description": "Optioneel: selecteer het specifieke apparaat. Leeg laten om alle apparaten te bereiken."
         }
       }
+    },
+    "shutdown": {
+      "name": "Windows-client uitschakelen",
+      "description": "Stuur een shutdown-, herstart- of afmeldopdracht naar één of meer Windows-clients.",
+      "fields": {
+        "delay": {
+          "name": "Vertraging",
+          "description": "Aantal seconden wachten voordat de actie wordt uitgevoerd.",
+          "example": "60"
+        },
+        "shutdown_type": {
+          "name": "Actietype",
+          "description": "De uit te voeren actie: shutdown, herstart of afmelden.",
+          "example": "shutdown"
+        },
+        "entry_id": {
+          "name": "Apparaat",
+          "description": "Optioneel: het specifieke apparaat. Leeg laten om alle apparaten te bereiken."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "unknown_entry_id": {
+      "message": "Onbekend entry_id opgegeven in service-aanroep: {entry_id}"
+    },
+    "entry_not_loaded": {
+      "message": "Apparaat '{title}' is momenteel niet geladen."
+    },
+    "auth_failed": {
+      "message": "API-sleutel voor {host} is ongeldig (HTTP {status}). Voer de API-sleutel opnieuw in."
+    },
+    "press_failed": {
+      "message": "Kon shutdown-opdracht niet versturen naar {host}. Controleer de logboeken."
     }
   }
 }

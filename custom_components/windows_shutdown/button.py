@@ -6,10 +6,8 @@ import logging
 
 from homeassistant.components.button import ButtonEntity
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
-from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -18,8 +16,6 @@ from .const import (
     CONF_SHUTDOWN_TYPE,
     DEFAULT_DELAY,
     DEFAULT_SHUTDOWN_TYPE,
-    DEVICE_MANUFACTURER,
-    DEVICE_MODEL,
     DOMAIN,
 )
 from .coordinator import WindowsShutdownCoordinator
@@ -56,13 +52,7 @@ class WindowsShutdownButton(
     ) -> None:
         super().__init__(coordinator)
         self._attr_unique_id = f"{entry.entry_id}_shutdown"
-        self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, entry.entry_id)},
-            name=entry.title,
-            manufacturer=DEVICE_MANUFACTURER,
-            model=DEVICE_MODEL,
-            configuration_url=f"http://{entry.data[CONF_HOST]}:{entry.data[CONF_PORT]}/status",
-        )
+        self._attr_device_info = coordinator.device_info
 
     @property
     def available(self) -> bool:
@@ -90,6 +80,7 @@ class WindowsShutdownButton(
 
         if not success:
             raise HomeAssistantError(
-                f"Kon shutdown niet versturen naar {self.coordinator.host}. "
-                "Controleer de logboeken voor details (mogelijk cooldown actief)."
+                translation_domain=DOMAIN,
+                translation_key="press_failed",
+                translation_placeholders={"host": self.coordinator.host},
             )

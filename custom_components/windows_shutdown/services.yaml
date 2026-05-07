@@ -14,7 +14,7 @@ shutdown:
           unit_of_measurement: s
     shutdown_type:
       name: Type
-      description: "Action type (shutdown, restart, or logoff)."
+      description: "Action type: shutdown, restart, or logoff."
       example: shutdown
       selector:
         select:
@@ -25,7 +25,6 @@ shutdown:
     entry_id:
       name: Device
       description: "Optional: select the specific device to target. Leave empty to target all configured devices."
-      required: false
       selector:
         config_entry:
           integration: windows_shutdown
@@ -38,20 +37,18 @@ notify:
       name: Title
       description: "Title of the notification. Defaults to Home Assistant if omitted."
       example: Home Assistant
-      required: false
       selector:
-        text:
+        text: {}
     message:
       name: Message
       description: Body text of the notification.
       example: The front door sensor was triggered.
       required: true
       selector:
-        text:
+        text: {}
     entry_id:
       name: Device
       description: "Optional: select the specific device to target. Leave empty to target all configured devices."
-      required: false
       selector:
         config_entry:
           integration: windows_shutdown

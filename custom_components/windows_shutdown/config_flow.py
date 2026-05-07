@@ -14,8 +14,8 @@ import voluptuous as vol
 
 from homeassistant import config_entries
 from homeassistant.components import zeroconf as zc_component
+from homeassistant.config_entries import ConfigFlowResult
 from homeassistant.const import CONF_HOST, CONF_PORT
-from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers.selector import (
     NumberSelector,
     NumberSelectorConfig,
@@ -64,7 +64,7 @@ class WindowsShutdownConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     # ------------------------------------------------------------------
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Toon het startmenu."""
         return self.async_show_menu(
             step_id="user",
@@ -76,7 +76,7 @@ class WindowsShutdownConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     # ------------------------------------------------------------------
     async def async_step_discover(
         self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Scan het netwerk op HA-Shutdown-clients via mDNS."""
 
         if user_input is not None:
@@ -164,7 +164,7 @@ class WindowsShutdownConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self,
         user_input: dict[str, Any] | None = None,
         errors: dict[str, str] | None = None,
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Voer host en poort handmatig in."""
         errors = errors or {}
 
@@ -223,7 +223,7 @@ class WindowsShutdownConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     # ------------------------------------------------------------------
     async def async_step_credentials(
         self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Voer de API-sleutel van de Windows-client in."""
 
         errors: dict[str, str] = {}
@@ -269,7 +269,7 @@ class WindowsShutdownConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     # ------------------------------------------------------------------
     async def async_step_zeroconf(
         self, discovery_info: zc_component.ZeroconfServiceInfo
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Wordt aangeroepen bij mDNS-ontdekking."""
         self._host = discovery_info.host
         self._port = discovery_info.port
@@ -283,7 +283,7 @@ class WindowsShutdownConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def async_step_zeroconf_confirm(
         self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Bevestiging voor zeroconf-ontdekte client."""
         if user_input is not None:
             return await self.async_step_credentials()
@@ -302,7 +302,7 @@ class WindowsShutdownConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     # ------------------------------------------------------------------
     async def async_step_reconfigure(
         self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Laat de gebruiker per apparaat delay en shutdown_type aanpassen."""
         entry = self.hass.config_entries.async_get_entry(self.context["entry_id"])
         if entry is None:
@@ -383,13 +383,13 @@ class WindowsShutdownConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     # ------------------------------------------------------------------
     async def async_step_reauth(
         self, user_input: dict[str, Any]
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Start de reauth-flow vanuit een bestaande config entry."""
         return await self.async_step_reauth_confirm()
 
     async def async_step_reauth_confirm(
         self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Laat de gebruiker een nieuwe API-sleutel invoeren."""
         errors: dict[str, str] = {}
         entry = self.hass.config_entries.async_get_entry(self.context["entry_id"])

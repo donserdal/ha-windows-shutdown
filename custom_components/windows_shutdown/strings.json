@@ -52,14 +52,16 @@
         "data_description": {
           "delay": "Number of seconds to wait before shutting down.",
           "shutdown_type": "Choose the desired action: shutdown, restart, or logoff."
-        }
+        },
+        "description": "Adjust settings for **{name}**."
       }
     },
     "error": {
       "cannot_connect": "Unable to connect. Check hostname/IP and port.",
       "invalid_auth": "Invalid API key. Check the key on the Windows computer.",
       "no_devices_found": "No clients found. Try manual entry.",
-      "unknown": "An unexpected error occurred."
+      "unknown": "An unexpected error occurred.",
+      "invalid_port": "Invalid port number. Enter a value between 1 and 65535."
     },
     "abort": {
       "already_configured": "This device is already configured.",
@@ -72,8 +74,8 @@
       "online": {
         "name": "Online",
         "state": {
-          "on": "On",
-          "off": "Off"
+          "true": "On",
+          "false": "Off"
         }
       }
     },
@@ -103,6 +105,40 @@
           "description": "Optional: select the specific device to target. Leave empty to target all configured devices."
         }
       }
+    },
+    "shutdown": {
+      "name": "Shutdown Windows Client",
+      "description": "Send a shutdown, restart, or logoff command to one or more Windows clients.",
+      "fields": {
+        "delay": {
+          "name": "Delay",
+          "description": "Number of seconds to wait before executing the action.",
+          "example": "60"
+        },
+        "shutdown_type": {
+          "name": "Action type",
+          "description": "The action to perform: shutdown, restart, or logoff.",
+          "example": "shutdown"
+        },
+        "entry_id": {
+          "name": "Device",
+          "description": "Optional: the specific device to target. Leave empty to target all configured devices."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "unknown_entry_id": {
+      "message": "Unknown entry_id specified in service call: {entry_id}"
+    },
+    "entry_not_loaded": {
+      "message": "Device '{title}' is currently not loaded."
+    },
+    "auth_failed": {
+      "message": "API key for {host} is invalid (HTTP {status}). Please re-enter your API key."
+    },
+    "press_failed": {
+      "message": "Could not send shutdown command to {host}. Check the logs for details."
     }
   }
 }

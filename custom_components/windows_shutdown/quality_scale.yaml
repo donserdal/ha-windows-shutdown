@@ -1,20 +1,33 @@
 rules:
   # --- Bronze ---
+  action-setup: done
+  appropriate-polling: done
+  brands: done
+  common-modules: done
   config-flow: done
-  test-before-configure: done
-  unique-config-entry: done
   config-flow-test-coverage:
     status: exempt
     comment: >
       Custom integration; no automated test suite present.
       Manually tested via the UI.
-  runtime-data: done
-  test-before-setup: done
-  action-setup: done
-  appropriate-polling: done
+  dependency-transparency: done
+  docs-high-level-description:
+    status: exempt
+    comment: Custom integration without a separate documentation site.
+  docs-installation-instructions:
+    status: exempt
+    comment: Custom integration without a separate documentation site.
+  docs-removal-instructions:
+    status: exempt
+    comment: Custom integration without a separate documentation site.
   entity-unique-id: done
   has-entity-name: done
   entity-translations: done
+  inject-websession: done
+  runtime-data: done
+  test-before-configure: done
+  test-before-setup: done
+  unique-config-entry: done
 
   # --- Silver ---
   config-entry-unloading: done
@@ -40,6 +53,17 @@ rules:
   # --- Gold ---
   devices: done
   diagnostics: done
+  dynamic-devices:
+    status: exempt
+    comment: >
+      Each config entry represents exactly one device. Devices are added and
+      removed via the config entry flow, not dynamically at runtime.
+  entity-category:
+    status: exempt
+    comment: >
+      The shutdown button is a primary control action, not a setting.
+      Therefore, EntityCategory is not applicable.
+  exception-translations: done
   reconfiguration-flow: done
   discovery: done
   discovery-update-info:
@@ -48,11 +72,11 @@ rules:
       The zeroconf flow is used only for initial discovery.
       IP address changes are not automatically updated because the
       user statically configures the client.
-  entity-category:
+  stale-devices:
     status: exempt
     comment: >
-      The shutdown button is a primary control action, not a setting.
-      Therefore, EntityCategory is not applicable.
+      Each config entry corresponds to exactly one device. Removing the
+      config entry removes the device; there are no orphaned devices.
   docs-data-update:
     status: exempt
     comment: Custom integration without a separate documentation site.

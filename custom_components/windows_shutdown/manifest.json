@@ -14,7 +14,7 @@
   "issue_tracker": "https://github.com/donserdal/ha-windows-shutdown/issues",
   "quality_scale": "gold",
   "requirements": [],
-  "version": "1.2.0",
+  "version": "1.3.0",
   "zeroconf": [
     "_ha-shutdown._tcp.local."
   ]

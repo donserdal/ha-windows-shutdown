@@ -11,15 +11,18 @@ from typing import Any
 
 import aiohttp
 
-from homeassistant.config_entries import ConfigEntryState
+from homeassistant.config_entries import ConfigEntry, ConfigEntryState
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from .const import (
     DEFAULT_SHUTDOWN_TYPE,
     DEFAULT_TIMEOUT,
+    DEVICE_MANUFACTURER,
+    DEVICE_MODEL,
     DOMAIN,
     POLL_INTERVAL,
 )
@@ -44,12 +47,14 @@ class WindowsShutdownCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         host: str,
         port: int,
         api_key: str,
+        config_entry: ConfigEntry,
     ) -> None:
         super().__init__(
             hass,
             _LOGGER,
             name=f"{DOMAIN}_{host}",
             update_interval=timedelta(seconds=POLL_INTERVAL),
+            config_entry=config_entry,
         )
         self.host = host
         self.port = port
@@ -59,6 +64,17 @@ class WindowsShutdownCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._timeout = aiohttp.ClientTimeout(total=DEFAULT_TIMEOUT)
         self._last_success: float = 0.0
         self._last_shutdown: float = 0.0
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """DeviceInfo voor alle entiteiten van dit apparaat."""
+        return DeviceInfo(
+            identifiers={(DOMAIN, self.config_entry.entry_id)},
+            name=self.config_entry.title,
+            manufacturer=DEVICE_MANUFACTURER,
+            model=DEVICE_MODEL,
+            configuration_url=f"http://{self.host}:{self.port}/status",
+        )
 
     # ------------------------------------------------------------------
     # Gedeelde HTTP-helper
@@ -113,9 +129,13 @@ class WindowsShutdownCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     "Authenticatiefout bij statuscheck voor %s: HTTP %d - reauth gestart",
                     self.host, status,
                 )
-                # Trigger de reauth-flow zodat de gebruiker de API-sleutel kan vernieuwen
                 raise ConfigEntryAuthFailed(
-                    f"API-sleutel voor {self.host} is ongeldig (HTTP {status})"
+                    translation_domain=DOMAIN,
+                    translation_key="auth_failed",
+                    translation_placeholders={
+                        "host": self.host,
+                        "status": str(status),
+                    },
                 )
             else:
                 _LOGGER.debug(
@@ -202,6 +222,15 @@ class WindowsShutdownCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         message: str,
     ) -> bool:
         """Stuur een notificatie naar de Windows-client (POST /notify)."""
+        if (
+            self.config_entry is None
+            or self.config_entry.state is not ConfigEntryState.LOADED
+        ):
+            _LOGGER.warning(
+                "Notificatie geweigerd voor %s: entry staat niet in LOADED-staat",
+                self.host,
+            )
+            return False
         payload: dict[str, Any] = {
             "title": title,
             "message": message,

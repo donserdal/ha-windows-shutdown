@@ -2,85 +2,95 @@
 
 from __future__ import annotations
 
+import voluptuous as vol
+
 from homeassistant.config_entries import ConfigEntry, ConfigEntryState
 from homeassistant.const import CONF_HOST, CONF_PORT, Platform
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import ServiceValidationError
+from homeassistant.helpers import config_validation as cv
 
 from .const import (
     CONF_API_KEY,
+    CONF_DELAY,
+    CONF_SHUTDOWN_TYPE,
     DOMAIN,
+    SHUTDOWN_TYPES,
 )
 from .coordinator import WindowsShutdownCoordinator
 
 PLATFORMS: list[Platform] = [Platform.BINARY_SENSOR, Platform.BUTTON]
 
+_SHUTDOWN_SCHEMA = vol.Schema(
+    {
+        vol.Optional(CONF_DELAY): vol.All(vol.Coerce(int), vol.Range(min=0, max=3600)),
+        vol.Optional(CONF_SHUTDOWN_TYPE): vol.In(SHUTDOWN_TYPES),
+        vol.Optional("entry_id"): cv.string,
+    }
+)
 
-async def async_setup(hass: HomeAssistant, config: dict) -> bool:
-    """Setup domain (één keer voor de hele integratie)."""
+_NOTIFY_SCHEMA = vol.Schema(
+    {
+        vol.Optional("title"): cv.string,
+        vol.Required("message"): cv.string,
+        vol.Optional("entry_id"): cv.string,
+    }
+)
+
+
+def _get_targets(
+    hass: HomeAssistant,
+    target_entry_id: str | None,
+) -> list[WindowsShutdownCoordinator]:
+    """Geef de lijst van te bereiken coordinators terug, of gooi een fout."""
+    if target_entry_id:
+        entry = hass.config_entries.async_get_entry(target_entry_id)
+        if entry is None or entry.domain != DOMAIN:
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key="unknown_entry_id",
+                translation_placeholders={"entry_id": target_entry_id},
+            )
+        if entry.state is not ConfigEntryState.LOADED:
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key="entry_not_loaded",
+                translation_placeholders={"title": entry.title},
+            )
+        return [entry.runtime_data]
+
+    return [
+        e.runtime_data
+        for e in hass.config_entries.async_entries(DOMAIN)
+        if e.state is ConfigEntryState.LOADED
+    ]
+
+
+def _register_services(hass: HomeAssistant) -> None:
+    """Registreer domain-brede services (éénmalig bij eerste entry)."""
 
     async def handle_shutdown(call: ServiceCall) -> None:
         """Service call voor shutdown via HA services."""
-        delay = call.data.get("delay")
-        shutdown_type = call.data.get("shutdown_type")
-        target_entry_id = call.data.get("entry_id")
-
-        if target_entry_id:
-            entry = hass.config_entries.async_get_entry(target_entry_id)
-            if entry is None or entry.domain != DOMAIN:
-                raise ServiceValidationError(
-                    f"Onbekend entry_id opgegeven in service-aanroep: {target_entry_id}"
-                )
-            if entry.state is not ConfigEntryState.LOADED:
-                raise ServiceValidationError(
-                    f"Apparaat '{entry.title}' is momenteel niet geladen."
-                )
-            targets = [entry.runtime_data]
-        else:
-            targets = [
-                e.runtime_data
-                for e in hass.config_entries.async_entries(DOMAIN)
-                if e.state is ConfigEntryState.LOADED
-            ]
-
-        for coordinator in targets:
+        for coordinator in _get_targets(hass, call.data.get("entry_id")):
             await coordinator.async_send_shutdown(
-                delay=delay,
-                shutdown_type=shutdown_type,
+                delay=call.data.get(CONF_DELAY),
+                shutdown_type=call.data.get(CONF_SHUTDOWN_TYPE),
             )
-
-    hass.services.async_register(DOMAIN, "shutdown", handle_shutdown)
 
     async def handle_notify(call: ServiceCall) -> None:
         """Service call om een notificatie te sturen naar de Windows-client."""
-        title: str = call.data.get("title", "Home Assistant")
-        message: str = call.data["message"]
-        target_entry_id = call.data.get("entry_id")
+        for coordinator in _get_targets(hass, call.data.get("entry_id")):
+            await coordinator.async_notify(
+                title=call.data.get("title", "Home Assistant"),
+                message=call.data["message"],
+            )
 
-        if target_entry_id:
-            entry = hass.config_entries.async_get_entry(target_entry_id)
-            if entry is None or entry.domain != DOMAIN:
-                raise ServiceValidationError(
-                    f"Onbekend entry_id opgegeven in service-aanroep: {target_entry_id}"
-                )
-            if entry.state is not ConfigEntryState.LOADED:
-                raise ServiceValidationError(
-                    f"Apparaat '{entry.title}' is momenteel niet geladen."
-                )
-            targets = [entry.runtime_data]
-        else:
-            targets = [
-                e.runtime_data
-                for e in hass.config_entries.async_entries(DOMAIN)
-                if e.state is ConfigEntryState.LOADED
-            ]
-
-        for coordinator in targets:
-            await coordinator.async_notify(title=title, message=message)
-
-    hass.services.async_register(DOMAIN, "notify", handle_notify)
-
-    return True
+    hass.services.async_register(
+        DOMAIN, "shutdown", handle_shutdown, schema=_SHUTDOWN_SCHEMA
+    )
+    hass.services.async_register(
+        DOMAIN, "notify", handle_notify, schema=_NOTIFY_SCHEMA
+    )
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -90,20 +100,29 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         host=entry.data[CONF_HOST],
         port=entry.data[CONF_PORT],
         api_key=entry.data[CONF_API_KEY],
+        config_entry=entry,
     )
 
-    # Eerste status poll
     await coordinator.async_config_entry_first_refresh()
 
-    # Sla coordinator op via het moderne runtime_data patroon
     entry.runtime_data = coordinator
 
-    # Laad de platforms (binary_sensor + button)
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+
+    # Registreer services de eerste keer dat een entry wordt geladen
+    if not hass.services.has_service(DOMAIN, "shutdown"):
+        _register_services(hass)
 
     return True
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Verwijder een config-entry."""
-    return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+    unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+
+    # Verwijder services zodra de laatste entry is uitgeladen
+    if unload_ok and not hass.config_entries.async_entries(DOMAIN):
+        hass.services.async_remove(DOMAIN, "shutdown")
+        hass.services.async_remove(DOMAIN, "notify")
+
+    return unload_ok
